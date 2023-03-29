@@ -45,7 +45,7 @@ bool ObjFile::load(const std::string& filename)
 
 	char buffer[256];
 
-	std::string currentMaterial;
+	std::string currentMaterial, currentGroup, currentObject;
 
 	while (fgets(buffer, sizeof(buffer), file))
 	{
@@ -84,7 +84,7 @@ bool ObjFile::load(const std::string& filename)
 		}
 		else if (header == "f")
 		{
-			parseFace(content, currentMaterial);
+			parseFace(content, currentMaterial, currentObject, currentGroup);
 		}
 		else if (header == "usemtl")
 		{
@@ -97,7 +97,16 @@ bool ObjFile::load(const std::string& filename)
 		}
 		else if (header == "o")
 		{
-			m_name = content;
+			if (m_name.empty())
+			{
+				m_name = content;
+			}
+
+			currentObject = content;
+		}
+		else if (header == "g")
+		{
+			currentGroup = content;
 		}
 	}
 
@@ -130,7 +139,7 @@ bool ObjFile::save(const std::string& filename) const
 	fprintf(file, "usemtl %s\n", m_material.c_str());
 	fprintf(file, "s off\n");
 
-	std::string currentMaterial = m_material;
+	std::string currentMaterial = m_material, currentObject = m_name, currentGroup;
 
 	for (const ObjFace face : m_faces)
 	{
@@ -139,6 +148,20 @@ bool ObjFile::save(const std::string& filename) const
 			fprintf(file, "usemtl %s\n", face.material.c_str());
 
 			currentMaterial = face.material;
+		}
+
+		if (!face.object.empty() && face.object != currentObject)
+		{
+			fprintf(file, "o %s\n", face.object.c_str());
+
+			currentObject = face.object;
+		}
+
+		if (!face.group.empty() && face.group != currentGroup)
+		{
+			fprintf(file, "g %s\n", face.group.c_str());
+
+			currentGroup = face.group;
 		}
 
 		fprintf(file, "f %s\n", face.toString().c_str());
@@ -344,36 +367,38 @@ IndicesList ObjFile::getFacesUsingVertex(int vertexIndex) const
 	return indices;
 }
 
-bool ObjFile::parseFace(const std::string& content, const std::string& material)
+bool ObjFile::parseFace(const std::string& content, const std::string& material, const std::string& object, const std::string& group)
 {
-	std::vector<std::string> groups;
-	boost::split(groups, content, [](char c) {return c == ' '; });
+	std::vector<std::string> tokens;
+	boost::split(tokens, content, [](char c) {return c == ' '; });
 
-	if (groups.empty()) return false;
+	if (tokens.empty()) return false;
 
 	ObjFace face;
 
-	for (const std::string& group : groups)
+	for (const std::string& token : tokens)
 	{
-		auto index = group.find_first_of('/');
+		auto index = token.find_first_of('/');
 
 		int vertexIndex;
 
 		if (index != std::string::npos)
 		{
 			// first value
-			vertexIndex = std::stoi(group.substr(0, index));
+			vertexIndex = std::stoi(token.substr(0, index));
 		}
 		else
 		{
 			// only vertex index
-			vertexIndex = std::stoi(group);
+			vertexIndex = std::stoi(token);
 		}
 
 		face.vertexIndices.push_back(vertexIndex);
 	}
 
 	face.material = material;
+	face.object = object;
+	face.group = group;
 
 	m_faces.push_back(face);
 

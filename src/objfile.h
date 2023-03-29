@@ -45,6 +45,8 @@ struct ObjVertex
 
 struct ObjFace
 {
+	std::string group;
+	std::string object;
 	std::string material;
 	IndicesList vertexIndices;
 
@@ -69,7 +71,7 @@ public:
 
 	IndicesList getFacesByMaterial(const std::string& material) const;
 
-	bool parseFace(const std::string& content, const std::string& surface);
+	bool parseFace(const std::string& content, const std::string& surface, const std::string& object, const std::string& group);
 
 	ObjFile getDifferences(const ObjFile& other) const;
 	bool colorizeDifferences(const std::string& material, const ObjFile& other);

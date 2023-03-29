@@ -72,6 +72,10 @@ bool ObjFile::load(const std::string& filename)
 			// precision 0.001 as DAZ Studio
 			ObjVertex v;
 
+			// string version
+			v.string = content;
+
+			// doubles version
 			if (sscanf(content.c_str(), "%lf %lf %lf", &v.x, &v.y, &v.z) == 3)
 			{
 				// vertex, just put the string, because we'll just compare them later
@@ -119,7 +123,8 @@ bool ObjFile::save(const std::string& filename) const
 
 	for (const ObjVertex& vertex: m_vertices)
 	{
-		fprintf(file, "v %f %f %f\n", vertex.x, vertex.y, vertex.z);
+		// reuse the string version
+		fprintf(file, "v %s\n", vertex.string.c_str());
 	}
 
 	fprintf(file, "usemtl %s\n", m_material.c_str());

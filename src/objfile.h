@@ -35,6 +35,7 @@ typedef std::map<int, int> IndicesMap;
 struct ObjVertex
 {
 	double x, y, z;
+	std::string string;
 
 	bool is_close(const ObjVertex& other) const
 	{

@@ -62,22 +62,14 @@ int main(int argc, char *argv[])
 			if (option == "d" || option == "diff")
 			{
 				inputFilename2 = argv[++i];
-
-				command = option[0];
 			}
-			else if (option == "c" || option == "colordiff")
+			else if (option == "c" || option == "colordiff" || option == "m" || option == "merge")
 			{
 				inputFilename2 = argv[++i];
 				material = argv[++i];
-
-				command = option[0];
 			}
-			else if (option == "m" || option == "merge")
+			else if (option == "s" || option == "simplify")
 			{
-				inputFilename2 = argv[++i];
-				material = argv[++i];
-
-				command = option[0];
 			}
 			else
 			{
@@ -85,6 +77,8 @@ int main(int argc, char *argv[])
 
 				return 1;
 			}
+
+			command = option[0];
 		}
 		else if (inputFilename1.empty())
 		{
@@ -121,7 +115,7 @@ int main(int argc, char *argv[])
 
 	obj.load(inputFilename1);
 
-	if (command == 'd')
+	if (command == 'c' || command == 'd' || command == 'm')
 	{
 		ObjFile obj2;
 
@@ -142,58 +136,27 @@ int main(int argc, char *argv[])
 		// optimisation
 		obj.createVerticesCache();
 
-		ObjFile out = obj.getDifferences(obj2);
-		out.save(outputFilename);
-	}
-	else if (command == 'c')
-	{
-		ObjFile obj2;
-
-		obj2.load(inputFilename2);
-
-		if (!obj.haveSameFacesCount(obj2))
+		if (command == 'd')
 		{
-			printf("Files don't have the same number of faces! %zu != %zu\n", obj.m_faces.size(), obj2.m_faces.size());
-			return 1;
+			ObjFile out = obj.getDifferences(obj2);
+			out.save(outputFilename);
 		}
-
-		if (!obj.haveSameVerticesCount(obj2))
+		else if (command == 'c')
 		{
-			printf("Files don't have the same number of vertices! %zu != %zu\n", obj.m_vertices.size(), obj2.m_vertices.size());
-			return 1;
+
+			obj.colorizeDifferences(material, obj2);
+			obj.save(outputFilename);
 		}
-
-		// optimisation
-		obj.createVerticesCache();
-
-		obj.colorizeDifferences(material, obj2);
-		obj.save(outputFilename);
-	}
-	else if (command == 'm')
-	{
-		ObjFile obj2;
-
-		obj2.load(inputFilename2);
-
-		if (!obj.haveSameFacesCount(obj2))
+		else if (command == 'm')
 		{
-			printf("Files don't have the same number of faces! %zu != %zu\n", obj.m_faces.size(), obj2.m_faces.size());
-			return 1;
-		}
+			if (!obj.mergeFacesByMaterial(material, obj2))
+			{
+				printf("No faces with material '%s'!\n", material.c_str());
+				return 1;
+			}
 
-		if (!obj.haveSameVerticesCount(obj2))
-		{
-			printf("Files don't have the same number of vertices! %zu != %zu\n", obj.m_vertices.size(), obj2.m_vertices.size());
-			return 1;
+			obj.save(outputFilename);
 		}
-
-		if (!obj.mergeFacesByMaterial(material, obj2))
-		{
-			printf("No faces with material '%s'!\n", material.c_str());
-			return 1;
-		}
-
-		obj.save(outputFilename);
 	}
 	else if (command == 's')
 	{

@@ -26,6 +26,9 @@ int main(int argc, char *argv[])
 {
 	if (argc < 2)
 	{
+		printf("%s %s by %s\n", PRODUCT, VERSION, AUTHOR);
+		printf("\n");
+
 		printf("Syntax: %s [options] <input filename> <output filename>\n", argv[0]);
 		printf("\n");
 

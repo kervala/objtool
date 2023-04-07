@@ -72,6 +72,9 @@ bool ObjFile::load(const std::string& filename)
 			// precision 0.001 as DAZ Studio
 			ObjVertex v;
 
+			// current object for vertex
+			v.object = currentObject;
+
 			// string version
 			v.string = content;
 
@@ -84,7 +87,7 @@ bool ObjFile::load(const std::string& filename)
 		}
 		else if (header == "f")
 		{
-			parseFace(content, currentMaterial, currentObject, currentGroup);
+			parseFace(content, currentMaterial, currentGroup);
 		}
 		else if (header == "usemtl")
 		{
@@ -125,13 +128,17 @@ bool ObjFile::save(const std::string& filename) const
 
 	fprintf(file, "# Kervala's OBJTool v%s File\n", VERSION);
 
-	if (!m_name.empty())
-	{
-		fprintf(file, "o %s\n", m_name.c_str());
-	}
+	std::string currentObject;
 
 	for (const ObjVertex& vertex: m_vertices)
 	{
+		if (!vertex.object.empty() && vertex.object != currentObject)
+		{
+			fprintf(file, "o %s\n", vertex.object.c_str());
+
+			currentObject = vertex.object;
+		}
+
 		// reuse the string version
 		fprintf(file, "v %s\n", vertex.string.c_str());
 	}
@@ -139,7 +146,7 @@ bool ObjFile::save(const std::string& filename) const
 	fprintf(file, "usemtl %s\n", m_material.c_str());
 	fprintf(file, "s off\n");
 
-	std::string currentMaterial = m_material, currentObject = m_name, currentGroup;
+	std::string currentMaterial, currentGroup;
 
 	for (const ObjFace face : m_faces)
 	{
@@ -148,20 +155,6 @@ bool ObjFile::save(const std::string& filename) const
 			fprintf(file, "usemtl %s\n", face.material.c_str());
 
 			currentMaterial = face.material;
-		}
-
-		if (!face.object.empty() && face.object != currentObject)
-		{
-			fprintf(file, "o %s\n", face.object.c_str());
-
-			currentObject = face.object;
-		}
-
-		if (!face.group.empty() && face.group != currentGroup)
-		{
-			fprintf(file, "g %s\n", face.group.c_str());
-
-			currentGroup = face.group;
 		}
 
 		fprintf(file, "f %s\n", face.toString().c_str());
@@ -367,7 +360,7 @@ IndicesList ObjFile::getFacesUsingVertex(int vertexIndex) const
 	return indices;
 }
 
-bool ObjFile::parseFace(const std::string& content, const std::string& material, const std::string& object, const std::string& group)
+bool ObjFile::parseFace(const std::string& content, const std::string& material, const std::string& group)
 {
 	std::vector<std::string> tokens;
 	boost::split(tokens, content, [](char c) {return c == ' '; });
@@ -397,7 +390,6 @@ bool ObjFile::parseFace(const std::string& content, const std::string& material,
 	}
 
 	face.material = material;
-	face.object = object;
 	face.group = group;
 
 	m_faces.push_back(face);

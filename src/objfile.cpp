@@ -273,6 +273,19 @@ bool ObjFile::colorizeDifferences(const std::string& material, const ObjFile& ot
 	return true;
 }
 
+bool ObjFile::addMaterialsFrom(const ObjFile& other)
+{
+	// we need same number of faces
+	if (m_faces.size() != other.m_faces.size()) return false;
+
+	for (int i = 0; i < m_faces.size(); ++i)
+	{
+		m_faces[i].material = other.m_faces[i].material;
+	}
+
+	return true;
+}
+
 bool ObjFile::mergeFacesByMaterial(const std::string& material, const ObjFile& other)
 {
 	if (material.empty()) return false;

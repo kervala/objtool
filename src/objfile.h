@@ -75,6 +75,7 @@ public:
 
 	ObjFile getDifferences(const ObjFile& other) const;
 	bool colorizeDifferences(const std::string& material, const ObjFile& other);
+	bool addMaterialsFrom(const ObjFile& other);
 
 	bool mergeFacesByMaterial(const std::string& material, const ObjFile& other);
 

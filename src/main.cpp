@@ -36,6 +36,7 @@ int main(int argc, char *argv[])
 		printf("  -d, --diff <filename>                  create an OBJ file with only different faces from filename\n");
 		printf("  -c, --colordiff <filename> <material>  create an OBJ file with different faces from filename with another material\n");
 		printf("  -m, --merge <filename> <material>      merge faces with the specific material from file with input filename\n");
+		printf("  -a, --addmaterials <filename>          add materials from filename and copy them to input file\n");
 		printf("  -s, --simplify                         only keep geometry data\n");
 
 		return 1;
@@ -60,6 +61,10 @@ int main(int argc, char *argv[])
 			option = option.substr(option.find_first_not_of('-'));
 
 			if (option == "d" || option == "diff")
+			{
+				inputFilename2 = argv[++i];
+			}
+			if (option == "a" || option == "addmaterials")
 			{
 				inputFilename2 = argv[++i];
 			}
@@ -115,7 +120,7 @@ int main(int argc, char *argv[])
 
 	obj.load(inputFilename1);
 
-	if (command == 'c' || command == 'd' || command == 'm')
+	if (command == 'c' || command == 'd' || command == 'm' || command == 'a')
 	{
 		ObjFile obj2;
 
@@ -140,6 +145,11 @@ int main(int argc, char *argv[])
 		{
 			ObjFile out = obj.getDifferences(obj2);
 			out.save(outputFilename);
+		}
+		else if (command == 'a')
+		{
+			obj.addMaterialsFrom(obj2);
+			obj.save(outputFilename);
 		}
 		else if (command == 'c')
 		{

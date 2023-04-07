@@ -91,20 +91,10 @@ bool ObjFile::load(const std::string& filename)
 		}
 		else if (header == "usemtl")
 		{
-			if (m_material.empty())
-			{
-				m_material = content;
-			}
-
 			currentMaterial = content;
 		}
 		else if (header == "o")
 		{
-			if (m_name.empty())
-			{
-				m_name = content;
-			}
-
 			currentObject = content;
 		}
 		else if (header == "g")
@@ -143,13 +133,19 @@ bool ObjFile::save(const std::string& filename) const
 		fprintf(file, "v %s\n", vertex.string.c_str());
 	}
 
-	fprintf(file, "usemtl %s\n", m_material.c_str());
 	fprintf(file, "s off\n");
 
 	std::string currentMaterial, currentGroup;
 
 	for (const ObjFace face : m_faces)
 	{
+		if (!face.group.empty() && face.group != currentGroup)
+		{
+			fprintf(file, "g %s\n", face.group.c_str());
+
+			currentGroup = face.group;
+		}
+
 		if (!face.material.empty() && face.material != currentMaterial)
 		{
 			fprintf(file, "usemtl %s\n", face.material.c_str());
@@ -202,9 +198,6 @@ bool ObjFile::createVerticesCache()
 ObjFile ObjFile::getDifferences(const ObjFile& other) const
 {
 	ObjFile file;
-
-	file.m_name = other.m_name;
-	file.m_material = other.m_material;
 
 	IndicesList oldVertices = getDifferentVertices(other);
 

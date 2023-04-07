@@ -86,9 +86,6 @@ public:
 	std::vector<ObjVertex> m_vertices;
 	std::vector<ObjFace> m_faces;
 
-	std::string m_name;
-	std::string m_material;
-
 	VerticesFacesList m_cachedIndices;
 };
 
